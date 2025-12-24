@@ -25,20 +25,22 @@ func TestQuickStart(t *testing.T) {
 	out := p.Run(context.Background(), Batch(input))
 
 	// 收集结果
-	var results []string
-	var errors []error
+	var (
+		results []string
+		err     []error
+	)
 
 	for res := range out {
 		if res.Err != nil {
-			errors = append(errors, res.Err)
+			err = append(err, res.Err)
 			continue
 		}
 		results = append(results, res.Val)
 	}
 
 	// 验证结果
-	if len(errors) != 0 {
-		t.Errorf("Expected no errors, got %d errors", len(errors))
+	if len(err) != 0 {
+		t.Errorf("Expected no err, got %d err", len(err))
 	}
 
 	expected := map[string]bool{"1": true, "2": true, "3": true}
