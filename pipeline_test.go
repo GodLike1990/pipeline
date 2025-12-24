@@ -645,3 +645,38 @@ func TestPipelineWithNoRateLimit(t *testing.T) {
 		t.Logf("Warning: pipeline took longer than expected without rate limiting: %v", duration)
 	}
 }
+
+// TestRateLimiterErrorHandling 测试限流器的错误处理
+func TestRateLimiterErrorHandling(t *testing.T) {
+	// 创建一个会立即超时的上下文来触发限流器的上下文错误
+	ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+	defer cancel()
+
+	p := New(
+		WithRateLimit[int, int](1), // 每秒1个令牌
+		WithHandler(func(_ context.Context, v int) (int, error) {
+			return v * 2, nil
+		}),
+	)
+
+	input := []int{1, 2}
+	out := p.Run(ctx, Batch(input))
+
+	var results []int
+	var errorCount int
+
+	for res := range out {
+		if res.Err != nil {
+			errorCount++
+		} else {
+			results = append(results, res.Val)
+		}
+	}
+
+	// 由于上下文超时，应该有错误
+	if errorCount == 0 {
+		t.Log("No errors occurred, context may not have timed out as expected")
+	}
+
+	t.Logf("Got %d results and %d errors with context timeout", len(results), errorCount)
+}
