@@ -12,7 +12,7 @@ type Pipeline[I any, O any] struct {
 }
 
 func New[I any, O any](opts ...Option[I, O]) *Pipeline[I, O] {
-	s := newStage[I, O](opts...)
+	s := newStage(opts...)
 	return &Pipeline[I, O]{
 		run: func(ctx context.Context, in <-chan I) <-chan Result[O] {
 			return s.run(ctx, in)

@@ -10,7 +10,7 @@ type Builder[I any] struct {
 
 func NewBuilder[I any]() *Builder[I] {
 	return &Builder[I]{
-		run: func(ctx context.Context, in <-chan any) <-chan Result[any] {
+		run: func(_ context.Context, in <-chan any) <-chan Result[any] {
 			out := make(chan Result[any])
 			go func() {
 				defer close(out)
@@ -23,7 +23,7 @@ func NewBuilder[I any]() *Builder[I] {
 	}
 }
 
-func Then[I any, O any](b *Builder[I], fn Handler[I, O], opts ...Option[I, O]) *Builder[O] {
+func Then[I any, O any](_ *Builder[I], fn Handler[I, O], opts ...Option[I, O]) *Builder[O] {
 	stage := newStage(append(opts, WithHandler(fn))...)
 
 	return &Builder[O]{
