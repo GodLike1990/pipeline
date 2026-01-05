@@ -53,16 +53,19 @@ Go 1.20+
 ## Quick Start | 快速开始
 
 ```go
-// 创建一个将int转换为string的流水线
+// 创建一个完整功能的流水线，包含并发控制、速率限制、重试、熔断器等
 p := pipeline.New(
-    pipeline.WithConcurrency(5.5),
+    pipeline.WithConcurrency(4),            // 4个并发worker
+    pipeline.WithRateLimit(10.5),           // 每秒10.5个请求（支持小数）
+    pipeline.WithRetry(3),                  // 失败重试3次
+    pipeline.WithCircuitBreaker(5, time.Minute), // 连续失败5次触发熔断，冷却1分钟
     pipeline.WithHandler(func(ctx context.Context, v int) (string, error) {
         return strconv.Itoa(v), nil
     }),
 )
 
 // 运行流水线，批量处理数据
-out := p.Run(context.Background(), pipeline.Batch([]int{1,2,3}))
+out := p.Run(context.Background(), pipeline.Batch([]int{1, 2, 3}))
 for res := range out {
     if res.Err != nil {
         log.Println(res.Err)
@@ -70,6 +73,9 @@ for res := range out {
     }
     fmt.Println(res.Val)
 }
+
+// 动态调整限速（运行时修改）
+p.SetRate(20.0) // 调整为每秒20个请求
 ```
 
 ## Builder (Multi-stage) | 构建器（多阶段）
