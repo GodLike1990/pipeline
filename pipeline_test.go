@@ -226,7 +226,7 @@ func TestConcurrency(t *testing.T) {
 
 // TestRateLimiting 测试速率限制
 func TestRateLimiting(t *testing.T) {
-	rps := 10 // 每秒10个请求
+	rps := 10.0 // 每秒10个请求
 
 	p := New(
 		WithRateLimit[int, int](rps),
@@ -257,7 +257,7 @@ func TestRateLimiting(t *testing.T) {
 	}
 
 	// 验证速率限制生效（应该至少花费 (len(input)-1)/rps 秒）
-	expectedMinDuration := time.Duration(len(input)-1) * time.Second / time.Duration(rps)
+	expectedMinDuration := time.Duration(float64(len(input)-1)/rps*1000) * time.Millisecond
 	if duration < expectedMinDuration {
 		t.Logf("Warning: rate limiting may not be working effectively. Expected min duration: %v, actual: %v", expectedMinDuration, duration)
 	}
@@ -653,7 +653,7 @@ func TestRateLimiterErrorHandling(t *testing.T) {
 	defer cancel()
 
 	p := New(
-		WithRateLimit[int, int](1), // 每秒1个令牌
+		WithRateLimit[int, int](1.0), // 每秒1个令牌
 		WithHandler(func(_ context.Context, v int) (int, error) {
 			return v * 2, nil
 		}),

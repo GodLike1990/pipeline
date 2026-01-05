@@ -13,7 +13,8 @@ type Result[T any] struct {
 // 它将输入类型 I 的数据转换为输出类型 O 的数据
 // 内部封装了一个或多个处理阶段(stage)
 type Pipeline[I any, O any] struct {
-	run func(context.Context, <-chan I) <-chan Result[O]
+	run     func(context.Context, <-chan I) <-chan Result[O]
+	limiter RateLimiter // 暴露限速器，支持动态调整
 }
 
 // New 创建一个新的数据处理流水线
@@ -27,6 +28,7 @@ func New[I any, O any](opts ...Option[I, O]) *Pipeline[I, O] {
 		run: func(ctx context.Context, in <-chan I) <-chan Result[O] {
 			return s.run(ctx, in)
 		},
+		limiter: s.limiter,
 	}
 }
 
@@ -36,4 +38,17 @@ func New[I any, O any](opts ...Option[I, O]) *Pipeline[I, O] {
 // 返回: 结果channel，消费者可以从中获取处理结果
 func (p *Pipeline[I, O]) Run(ctx context.Context, in <-chan I) <-chan Result[O] {
 	return p.run(ctx, in)
+}
+
+// SetRate 动态调整限速
+// rps: 每秒请求数，支持小数
+func (p *Pipeline[I, O]) SetRate(rps float64) {
+	if p.limiter != nil {
+		p.limiter.SetRate(rps)
+	}
+}
+
+// RateLimiter 获取限速器接口，用于更精细的控制
+func (p *Pipeline[I, O]) RateLimiter() RateLimiter {
+	return p.limiter
 }

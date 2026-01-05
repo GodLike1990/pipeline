@@ -55,7 +55,7 @@ Go 1.20+
 ```go
 // 创建一个将int转换为string的流水线
 p := pipeline.New(
-    pipeline.WithConcurrency(4),
+    pipeline.WithConcurrency(5.5),
     pipeline.WithHandler(func(ctx context.Context, v int) (string, error) {
         return strconv.Itoa(v), nil
     }),

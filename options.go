@@ -29,10 +29,17 @@ func WithConcurrency[I any, O any](n int) Option[I, O] {
 }
 
 // WithRateLimit 设置速率限制
-// rps: 每秒请求数(Requests Per Second)，控制处理速度
+// rps: 每秒请求数(Requests Per Second)，支持小数
 // 用于防止系统过载，保护下游服务
-func WithRateLimit[I any, O any](rps int) Option[I, O] {
+// 返回的限速器可通过返回的 RateLimiter 接口动态调整速率
+func WithRateLimit[I any, O any](rps float64) Option[I, O] {
 	return func(s *stage[I, O]) { s.limiter = NewRateLimiter(rps) }
+}
+
+// WithRateLimiter 设置自定义速率限制器
+// 支持动态调整速率和更复杂的限流策略
+func WithRateLimiter[I any, O any](limiter RateLimiter) Option[I, O] {
+	return func(s *stage[I, O]) { s.limiter = limiter }
 }
 
 // WithRetry 设置重试策略
